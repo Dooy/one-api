@@ -52,7 +52,8 @@ const typeConfig = {
   },
   14: {
     input: {
-      models: ["claude-instant-1", "claude-2", "claude-2.0", "claude-2.1"],
+      //models: ["claude-instant-1", "claude-2", "claude-2.0", "claude-2.1"],
+      models: ["claude-3-sonnet-20240229", "claude-3-opus-20240229"],
     },
     modelGroup: "anthropic",
   },
