@@ -7,7 +7,7 @@ docker build  -t ydlhero/myone:latest .
 time=$(date "+%Y%m%d%H%M%S")
 # 获取当前git commit id 
 commit_id=$(git rev-parse HEAD)
-docker tag hydlhero/myone:latest ydlhero/myone:$time-$commit_id
+docker tag ydlhero/myone:latest ydlhero/myone:$time-$commit_id
 # 推送镜像到docker hub
 docker push ydlhero/myone:$time-$commit_id
 docker push ydlhero/myone:latest
