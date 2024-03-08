@@ -8,3 +8,5 @@ build
 logs
 data
 /web/node_modules
+.one-api
+one-api

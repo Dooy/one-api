@@ -4,15 +4,16 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/songquanpeng/one-api/common"
 	"github.com/songquanpeng/one-api/common/helper"
 	"github.com/songquanpeng/one-api/common/logger"
 	"github.com/songquanpeng/one-api/relay/channel/openai"
 	"github.com/songquanpeng/one-api/relay/model"
-	"io"
-	"net/http"
-	"strings"
 )
 
 func stopReasonClaude2OpenAI(reason string) string {
@@ -26,7 +27,34 @@ func stopReasonClaude2OpenAI(reason string) string {
 	}
 }
 
-func ConvertRequest(textRequest model.GeneralOpenAIRequest) *Request {
+func ConvertRequest(textRequest model.GeneralOpenAIRequest) *ChatRequest {
+	//logger.SysError("模型是啥啊？: " + textRequest.Model)
+	//mess := model.Message[]
+	sys := ""
+	var messg []model.Message
+	for _, message := range textRequest.Messages {
+		if message.Role == "system" {
+			sys = message.StringContent()
+		} else {
+			messg = append(messg, message)
+		}
+	}
+	if sys != "" {
+		messg[0].Content = sys + "\n\n" + messg[0].StringContent()
+	}
+	claudeRequest := ChatRequest{
+		Model:         textRequest.Model,
+		MaxTokens:     textRequest.MaxTokens,
+		StopSequences: nil,
+		Temperature:   textRequest.Temperature,
+		TopP:          textRequest.TopP,
+		Stream:        textRequest.Stream,
+		Messages:      messg, //textRequest.Messages,
+	}
+	return &claudeRequest
+}
+func ConvertRequest2(textRequest model.GeneralOpenAIRequest) *Request {
+
 	claudeRequest := Request{
 		Model:             textRequest.Model,
 		Prompt:            "",
@@ -56,26 +84,26 @@ func ConvertRequest(textRequest model.GeneralOpenAIRequest) *Request {
 	return &claudeRequest
 }
 
-func streamResponseClaude2OpenAI(claudeResponse *Response) *openai.ChatCompletionsStreamResponse {
+func streamResponseClaude2OpenAI(claudeResponse *ResponseStream) *openai.ChatCompletionsStreamResponse {
 	var choice openai.ChatCompletionsStreamResponseChoice
-	choice.Delta.Content = claudeResponse.Completion
-	finishReason := stopReasonClaude2OpenAI(claudeResponse.StopReason)
+	choice.Delta.Content = claudeResponse.Delta.Text
+	finishReason := "" //stopReasonClaude2OpenAI(claudeResponse.StopReason)
 	if finishReason != "null" {
 		choice.FinishReason = &finishReason
 	}
 	var response openai.ChatCompletionsStreamResponse
 	response.Object = "chat.completion.chunk"
-	response.Model = claudeResponse.Model
+	response.Model = "claude-3-opus-20240229" //claudeResponse.Model
 	response.Choices = []openai.ChatCompletionsStreamResponseChoice{choice}
 	return &response
 }
 
-func responseClaude2OpenAI(claudeResponse *Response) *openai.TextResponse {
+func responseClaude2OpenAI(claudeResponse *ResponseNoStream) *openai.TextResponse {
 	choice := openai.TextResponseChoice{
 		Index: 0,
 		Message: model.Message{
 			Role:    "assistant",
-			Content: strings.TrimPrefix(claudeResponse.Completion, " "),
+			Content: strings.TrimPrefix(claudeResponse.Content[0].Text, " "),
 			Name:    nil,
 		},
 		FinishReason: stopReasonClaude2OpenAI(claudeResponse.StopReason),
@@ -90,18 +118,25 @@ func responseClaude2OpenAI(claudeResponse *Response) *openai.TextResponse {
 }
 
 func StreamHandler(c *gin.Context, resp *http.Response) (*model.ErrorWithStatusCode, string) {
+	//logger.SysLog(" StreamHandler >>  ")
 	responseText := ""
 	responseId := fmt.Sprintf("chatcmpl-%s", helper.GetUUID())
 	createdTime := helper.GetTimestamp()
 	scanner := bufio.NewScanner(resp.Body)
 	scanner.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+
+		//logger.SysLog("scanner.Split ：" + string(data))
 		if atEOF && len(data) == 0 {
 			return 0, nil, nil
 		}
 		if i := strings.Index(string(data), "\r\n\r\n"); i >= 0 {
 			return i + 4, data[0:i], nil
 		}
+		if i := strings.Index(string(data), "\n\n"); i >= 0 {
+			return i + 2, data[0:i], nil
+		}
 		if atEOF {
+
 			return len(data), data, nil
 		}
 		return 0, nil, nil
@@ -111,10 +146,13 @@ func StreamHandler(c *gin.Context, resp *http.Response) (*model.ErrorWithStatusC
 	go func() {
 		for scanner.Scan() {
 			data := scanner.Text()
-			if !strings.HasPrefix(data, "event: completion") {
+			//logger.SysLog(" scanner stream>>  " + data)
+			if !strings.HasPrefix(data, "event: content_block_delta") {
+				//logger.SysLog(" scanner stream>>  " + data)
 				continue
 			}
-			data = strings.TrimPrefix(data, "event: completion\r\ndata: ")
+			//data = strings.TrimPrefix(data, "event: completion\r\ndata: ")
+			data = strings.TrimPrefix(data, "event: content_block_delta\ndata: ")
 			dataChan <- data
 		}
 		stopChan <- true
@@ -125,13 +163,16 @@ func StreamHandler(c *gin.Context, resp *http.Response) (*model.ErrorWithStatusC
 		case data := <-dataChan:
 			// some implementations may add \r at the end of data
 			data = strings.TrimSuffix(data, "\r")
-			var claudeResponse Response
+
+			var claudeResponse ResponseStream
+			//logger.SysLog(" responseText>>  " + data)
 			err := json.Unmarshal([]byte(data), &claudeResponse)
 			if err != nil {
 				logger.SysError("error unmarshalling stream response: " + err.Error())
 				return true
 			}
-			responseText += claudeResponse.Completion
+			responseText += claudeResponse.Delta.Text
+			//logger.SysLog(" responseText>>  " + responseText)
 			response := streamResponseClaude2OpenAI(&claudeResponse)
 			response.Id = responseId
 			response.Created = createdTime
@@ -163,7 +204,7 @@ func Handler(c *gin.Context, resp *http.Response, promptTokens int, modelName st
 	if err != nil {
 		return openai.ErrorWrapper(err, "close_response_body_failed", http.StatusInternalServerError), nil
 	}
-	var claudeResponse Response
+	var claudeResponse ResponseNoStream
 	err = json.Unmarshal(responseBody, &claudeResponse)
 	if err != nil {
 		return openai.ErrorWrapper(err, "unmarshal_response_body_failed", http.StatusInternalServerError), nil
@@ -181,7 +222,7 @@ func Handler(c *gin.Context, resp *http.Response, promptTokens int, modelName st
 	}
 	fullTextResponse := responseClaude2OpenAI(&claudeResponse)
 	fullTextResponse.Model = modelName
-	completionTokens := openai.CountTokenText(claudeResponse.Completion, modelName)
+	completionTokens := claudeResponse.Usage.OnputTokens //openai.CountTokenText(claudeResponse.Completion, modelName)
 	usage := model.Usage{
 		PromptTokens:     promptTokens,
 		CompletionTokens: completionTokens,

@@ -188,7 +188,7 @@ docker-compose ps
    go mod download
    go build -ldflags "-s -w" -o one-api
    ````
-2. 运行：
+2. 运行： 
    ```shell
    chmod u+x one-api
    ./one-api --port 3000 --log-dir ./logs

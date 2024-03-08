@@ -3,13 +3,14 @@ package anthropic
 import (
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/songquanpeng/one-api/relay/channel"
 	"github.com/songquanpeng/one-api/relay/channel/openai"
 	"github.com/songquanpeng/one-api/relay/model"
 	"github.com/songquanpeng/one-api/relay/util"
-	"io"
-	"net/http"
 )
 
 type Adaptor struct {
@@ -20,7 +21,10 @@ func (a *Adaptor) Init(meta *util.RelayMeta) {
 }
 
 func (a *Adaptor) GetRequestURL(meta *util.RelayMeta) (string, error) {
-	return fmt.Sprintf("%s/v1/complete", meta.BaseURL), nil
+	//url := fmt.Sprintf("%s/v1/complete", meta.BaseURL)
+	url := fmt.Sprintf("%s/v1/messages", meta.BaseURL)
+	//logger.SysLog("url:" + url)
+	return url, nil
 }
 
 func (a *Adaptor) SetupRequestHeader(c *gin.Context, req *http.Request, meta *util.RelayMeta) error {
