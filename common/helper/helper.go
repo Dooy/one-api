@@ -2,18 +2,20 @@ package helper
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/songquanpeng/one-api/common/logger"
 	"html/template"
 	"log"
 	"math/rand"
 	"net"
 	"os"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/songquanpeng/one-api/common/logger"
 )
 
 func OpenBrowser(url string) {
@@ -221,8 +223,15 @@ func AssignOrDefault(value string, defaultValue string) string {
 	return defaultValue
 }
 
+// 过滤网址
 func MessageWithRequestId(message string, id string) string {
-	return fmt.Sprintf("%s (request id: %s)", message, id)
+	return fmt.Sprintf("%s (request id: %s)", ClearUrlhost(message), id)
+}
+
+func ClearUrlhost(inputString string) string {
+	urlPattern := regexp.MustCompile(`https?://\S+`)
+	result := urlPattern.ReplaceAllString(inputString, "")
+	return result
 }
 
 func String2Int(str string) int {
