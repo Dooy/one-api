@@ -4,15 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/songquanpeng/one-api/common"
-	"github.com/songquanpeng/one-api/common/config"
-	"github.com/songquanpeng/one-api/common/logger"
 	"math/rand"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/songquanpeng/one-api/common"
+	"github.com/songquanpeng/one-api/common/config"
+	"github.com/songquanpeng/one-api/common/logger"
 )
 
 var (
@@ -192,6 +193,9 @@ func SyncChannelCache(frequency int) {
 }
 
 func CacheGetRandomSatisfiedChannel(group string, model string, ignoreFirstPriority bool) (*Channel, error) {
+	if strings.HasPrefix(model, "gpt-4-gizmo") {
+		model = "gpt-4-gizmo"
+	}
 	if !config.MemoryCacheEnabled {
 		return GetRandomSatisfiedChannel(group, model)
 	}
