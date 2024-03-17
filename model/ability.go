@@ -1,8 +1,11 @@
 package model
 
 import (
-	"github.com/songquanpeng/one-api/common"
 	"strings"
+	"time"
+
+	"github.com/songquanpeng/one-api/common"
+	"github.com/songquanpeng/one-api/common/logger"
 )
 
 type Ability struct {
@@ -11,6 +14,7 @@ type Ability struct {
 	ChannelId int    `json:"channel_id" gorm:"primaryKey;autoIncrement:false;index"`
 	Enabled   bool   `json:"enabled"`
 	Priority  *int64 `json:"priority" gorm:"bigint;default:0;index"`
+	UseTime   int64  `json:"use_time" gorm:"bigint;default:0;index"` //使用时间用来排序
 }
 
 func GetRandomSatisfiedChannel(group string, model string) (*Channel, error) {
@@ -25,17 +29,30 @@ func GetRandomSatisfiedChannel(group string, model string) (*Channel, error) {
 	var err error = nil
 	maxPrioritySubQuery := DB.Model(&Ability{}).Select("MAX(priority)").Where(groupCol+" = ? and model = ? and enabled = "+trueVal, group, model)
 	channelQuery := DB.Where(groupCol+" = ? and model = ? and enabled = "+trueVal+" and priority = (?)", group, model, maxPrioritySubQuery)
-	if common.UsingSQLite || common.UsingPostgreSQL {
-		err = channelQuery.Order("RANDOM()").First(&ability).Error
-	} else {
-		err = channelQuery.Order("RAND()").First(&ability).Error
-	}
+	// if common.UsingSQLite || common.UsingPostgreSQL {
+	// 	err = channelQuery.Order("RANDOM()").First(&ability).Error
+	// } else {
+	// 	err = channelQuery.Order("RAND()").First(&ability).Error
+	// }
+	err = channelQuery.Order("use_time").First(&ability).Error
 	if err != nil {
 		return nil, err
 	}
 	channel := Channel{}
 	channel.Id = ability.ChannelId
 	err = DB.First(&channel, "id = ?", ability.ChannelId).Error
+	if err == nil {
+		// 获取当前时间
+		currentTime := time.Now()
+
+		// 更新 use_time 字段为当前时间
+		err2 := DB.Model(&Ability{}).
+			Where(" model = ? and channel_id =? ", model, ability.ChannelId).
+			Update("use_time", currentTime.UnixMilli()).Error
+		if err2 != nil {
+			logger.SysLog("use_time :  " + err2.Error())
+		}
+	}
 	return &channel, err
 }
 

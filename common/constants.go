@@ -68,6 +68,7 @@ const (
 	ChannelTypeMinimax
 	ChannelTypeMistral
 
+	ChannelTypeGpts2 //在这个地方分配到29
 	ChannelTypeDummy
 )
 
@@ -101,6 +102,7 @@ var ChannelBaseURLs = []string{
 	"https://api.baichuan-ai.com",               // 26
 	"https://api.minimax.chat",                  // 27
 	"https://api.mistral.ai",                    // 28
+	"",                                          // 29 这个需要自定义来走
 }
 
 const (

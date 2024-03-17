@@ -164,6 +164,12 @@ const typeConfig = {
     },
     modelGroup: "minimax",
   },
+  101: {
+    input: {
+      models: ["gpt-4-all", "gpt-4-gizmo"],
+    },
+    modelGroup: "gpts2",
+  },
 };
 
 export { defaultConfig, typeConfig };

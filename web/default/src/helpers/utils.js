@@ -212,6 +212,7 @@ export async function loadChannelModels() {
 }
 
 export function getChannelModels(type) {
+  
   if (channelModels !== undefined && type in channelModels) {
     return channelModels[type];
   }
@@ -220,6 +221,7 @@ export function getChannelModels(type) {
     return [];
   }
   channelModels = JSON.parse(models);
+  console.log('getChannelModels:',  channelModels  );
   if (type in channelModels) {
     return channelModels[type];
   }

@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/songquanpeng/one-api/common"
 	"github.com/songquanpeng/one-api/common/config"
 	"github.com/songquanpeng/one-api/common/logger"
 	"github.com/songquanpeng/one-api/model"
 	relaymodel "github.com/songquanpeng/one-api/relay/model"
-	"io"
-	"net/http"
-	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +25,7 @@ func ShouldDisableChannel(err *relaymodel.Error, statusCode int) bool {
 	if err == nil {
 		return false
 	}
-	if statusCode == http.StatusUnauthorized {
+	if statusCode == http.StatusUnauthorized || statusCode == 425 {
 		return true
 	}
 	if err.Type == "insufficient_quota" || err.Code == "invalid_api_key" || err.Code == "account_deactivated" {

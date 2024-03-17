@@ -166,5 +166,11 @@ export const CHANNEL_OPTIONS = {
     text: '代理：AIGC2D',
     value: 13,
     color: 'primary'
+  },
+  101: {
+    key: 101,
+    text: 'GTPs2',
+    value: 101,
+    color: 'primary'
   }
 };
