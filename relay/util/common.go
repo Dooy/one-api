@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -19,17 +20,27 @@ import (
 )
 
 func ShouldDisableChannel(err *relaymodel.Error, statusCode int) bool {
+	serverType := os.Getenv("SERVER_TYPE") //服务类型
 	if !config.AutomaticDisableChannelEnabled {
 		return false
 	}
 	if err == nil {
 		return false
 	}
-	if statusCode == http.StatusUnauthorized || statusCode == 425 {
+	if statusCode == http.StatusUnauthorized {
 		return true
 	}
 	if err.Type == "insufficient_quota" || err.Code == "invalid_api_key" || err.Code == "account_deactivated" {
 		return true
+	}
+	if serverType == "master" { //主机
+		if strings.Contains(err.Message, "无可用渠道") { //当没有渠道
+			return true
+		}
+	} else { //一般
+		if statusCode == 425 {
+			return true
+		}
 	}
 	return false
 }
