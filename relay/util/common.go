@@ -27,20 +27,17 @@ func ShouldDisableChannel(err *relaymodel.Error, statusCode int) bool {
 	if err == nil {
 		return false
 	}
-	if statusCode == http.StatusUnauthorized {
-		return true
-	}
-	if err.Type == "insufficient_quota" || err.Code == "invalid_api_key" || err.Code == "account_deactivated" {
-		return true
-	}
+
 	if serverType == "master" { //主机
 		if strings.Contains(err.Message, "无可用渠道") { //当没有渠道
 			return true
 		}
 	} else { //一般
-		if statusCode == 425 {
+		isClose := statusCode == http.StatusUnauthorized || statusCode == 425 || err.Type == "insufficient_quota" || err.Code == "invalid_api_key" || err.Code == "account_deactivated"
+		if isClose {
 			return true
 		}
+
 	}
 	return false
 }
