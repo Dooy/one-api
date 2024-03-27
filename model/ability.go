@@ -14,7 +14,7 @@ type Ability struct {
 	ChannelId int    `json:"channel_id" gorm:"primaryKey;autoIncrement:false;index"`
 	Enabled   bool   `json:"enabled"`
 	Priority  *int64 `json:"priority" gorm:"bigint;default:0;index"`
-	UseTime   int64  `json:"use_time" gorm:"bigint;default:0;index"` //使用时间用来排序
+	UseTime   int64  `json:"use_time" gorm:"bigint;default:0;index"` //使用时间用来排序 Dooy
 }
 
 func GetRandomSatisfiedChannel(group string, model string) (*Channel, error) {
@@ -34,6 +34,7 @@ func GetRandomSatisfiedChannel(group string, model string) (*Channel, error) {
 	// } else {
 	// 	err = channelQuery.Order("RAND()").First(&ability).Error
 	// }
+	//Dooy at 0327 使用user_time 来排序
 	err = channelQuery.Order("use_time").First(&ability).Error
 	if err != nil {
 		return nil, err
