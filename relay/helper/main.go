@@ -10,6 +10,7 @@ import (
 	"github.com/songquanpeng/one-api/relay/channel/gpts2"
 	"github.com/songquanpeng/one-api/relay/channel/openai"
 	"github.com/songquanpeng/one-api/relay/channel/palm"
+	"github.com/songquanpeng/one-api/relay/channel/suno"
 	"github.com/songquanpeng/one-api/relay/channel/tencent"
 	"github.com/songquanpeng/one-api/relay/channel/xunfei"
 	"github.com/songquanpeng/one-api/relay/channel/zhipu"
@@ -40,6 +41,8 @@ func GetAdaptor(apiType int) channel.Adaptor {
 		return &zhipu.Adaptor{}
 	case constant.APITypeGpts2:
 		return &gpts2.Adaptor{}
+	case constant.APITypeSuno: //suno入口
+		return &suno.Adaptor{}
 	}
 
 	return nil

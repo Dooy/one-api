@@ -17,6 +17,7 @@ const (
 	APITypeGemini
 
 	APITypeGpts2
+	APITypeSuno
 	APITypeDummy // this one is only for count, do not add any channel after this
 
 )
@@ -44,6 +45,8 @@ func ChannelType2APIType(channelType int) int {
 		apiType = APITypeGemini
 	case common.ChannelTypeGpts2:
 		apiType = APITypeGpts2 //这个地方增加起到对应API类型
+	case common.ChannelTypeSuno:
+		apiType = APITypeSuno //这个地方增加起到对应SunoAPI类型
 	}
 	return apiType
 }

@@ -69,6 +69,7 @@ const (
 	ChannelTypeMistral
 
 	ChannelTypeGpts2 //在这个地方分配到29
+	ChannelTypeSuno  //在这个地方分配到30
 	ChannelTypeDummy
 )
 
@@ -103,6 +104,7 @@ var ChannelBaseURLs = []string{
 	"https://api.minimax.chat",                  // 27
 	"https://api.mistral.ai",                    // 28
 	"",                                          // 29 这个需要自定义来走
+	"https://studio-api.suno.ai",                // 30 suno 这个需要自定义来走
 }
 
 const (
