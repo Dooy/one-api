@@ -82,7 +82,7 @@ func (a *Adaptor) reGo() {
 
 func (a *Adaptor) fetchBearer() error {
 	go a.reGo()
-	fullRequestURL := fmt.Sprintf("https://clerk.suno.ai/v1/client/sessions/%s/tokens?_clerk_js_version=4.71.0", a.sess)
+	fullRequestURL := fmt.Sprintf("https://clerk.suno.com/v1/client/sessions/%s/tokens?_clerk_js_version=4.72.0-snapshot.vc141245", a.sess)
 	req, err := http.NewRequest(http.MethodPost, fullRequestURL, nil)
 	if err != nil {
 		return err
