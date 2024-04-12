@@ -14,7 +14,7 @@ import (
 type Channel struct {
 	Id                 int     `json:"id"`
 	Type               int     `json:"type" gorm:"default:0"`
-	Key                string  `json:"key" gorm:"type:varchar(1024);not null;index:idx_key,size:191"`
+	Key                string  `json:"key" gorm:"type:varchar(1024);not null;index:idx_key(191),size:191"`
 	Status             int     `json:"status" gorm:"default:1"`
 	Name               string  `json:"name" gorm:"index"`
 	Weight             *uint   `json:"weight" gorm:"default:0"`
