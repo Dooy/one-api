@@ -128,7 +128,7 @@ const Header = () => {
               : { borderTop: 'none', height: '52px' }
           }
         >
-          <Container>
+          <Container className={'main-content'}>
             <Menu.Item as={Link} to='/'>
               <img
                 src={logo}
@@ -186,7 +186,7 @@ const Header = () => {
   return (
     <>
       <Menu borderless style={{ borderTop: 'none' }}>
-        <Container>
+        <Container className={'main-content'}>
           <Menu.Item as={Link} to='/' className={'hide-on-mobile'}>
             <img src={logo} alt='logo' style={{ marginRight: '0.75em' }} />
             <div style={{ fontSize: '20px' }}>

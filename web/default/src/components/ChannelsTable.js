@@ -9,11 +9,14 @@ import {
   showError,
   showInfo,
   showSuccess,
-  timestamp2string
+  timestamp2string,
+  
+  
 } from '../helpers';
 
 import { CHANNEL_OPTIONS, ITEMS_PER_PAGE } from '../constants';
 import { renderGroup, renderNumber } from '../helpers/render';
+import { renderQuota } from '../helpers/render';
 
 function renderTimestamp(timestamp) {
   return (
@@ -440,6 +443,7 @@ const ChannelsTable = () => {
                       content='点击更新'
                       basic
                     />
+                    /{renderQuota(channel.used_quota,2)}
                   </Table.Cell>
                   <Table.Cell>
                     <Popup

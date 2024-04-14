@@ -18,7 +18,7 @@ root.render(
     <StatusProvider>
       <UserProvider>
         <BrowserRouter>
-          <Header />
+          <Header  />
           <Container className={'main-content'}>
             <App />
           </Container>
